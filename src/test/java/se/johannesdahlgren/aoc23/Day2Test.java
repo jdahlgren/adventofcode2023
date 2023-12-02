@@ -21,4 +21,17 @@ class Day2Test {
     assertThat(sum, is(2449));
   }
 
+  @Test
+  void part2Example() {
+    Day2 day2 = new Day2("day2example.txt");
+    int sum = day2.sumOfPowerOfMinNumberOfCubes();
+    assertThat(sum, is(2286));
+  }
+
+  @Test
+  void part2() {
+    Day2 day2 = new Day2("day2.txt");
+    int sum = day2.sumOfPowerOfMinNumberOfCubes();
+    assertThat(sum, is(63981));
+  }
 }

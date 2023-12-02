@@ -23,6 +23,14 @@ public final class Day2 {
         .reduce(0, Integer::sum);
   }
 
+  public int sumOfPowerOfMinNumberOfCubes() {
+    List<String> gameLines = FileReader.readFileAsLines(fileName);
+    return gameLines.stream()
+        .map(this::toGame)
+        .map(this::powerOfMinNumberOfCubes)
+        .reduce(0, Integer::sum);
+  }
+
   private Game toGame(String gameLine) {
     int gameId = getGameId(gameLine);
     List<CubeSet> cubeSets = getCubeSets(gameLine);
@@ -68,6 +76,18 @@ public final class Day2 {
       }
     }
     return new CubeSet(red, green, blue);
+  }
+
+  private int powerOfMinNumberOfCubes(Game game) {
+    int maxRed = Integer.MIN_VALUE;
+    int maxGreen = Integer.MIN_VALUE;
+    int maxBlue = Integer.MIN_VALUE;
+    for (CubeSet cubeSet : game.cubeSets()) {
+      maxRed = Math.max(cubeSet.numberOfRed, maxRed);
+      maxGreen = Math.max(cubeSet.numberOfGreen, maxGreen);
+      maxBlue = Math.max(cubeSet.numberOfBlue, maxBlue);
+    }
+    return maxRed * maxGreen * maxBlue;
   }
 
   record Game(int gameId, List<CubeSet> cubeSets) {
