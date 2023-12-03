@@ -17,6 +17,15 @@ public class FileReader {
     }
   }
 
+  public static List<List<Character>> readFileAsCharMatrix(String fileName) {
+    return readFileAsLines(fileName).stream()
+        .map(line -> line.chars()
+            .mapToObj(c -> (char) c)
+            .toList())
+        .toList();
+
+  }
+
   private static Path getPath(String fileName) {
     return Paths.get("src/main/resources/" + fileName);
   }
