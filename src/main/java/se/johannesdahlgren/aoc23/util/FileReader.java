@@ -26,6 +26,15 @@ public class FileReader {
 
   }
 
+  public static String readFileToString(String fileName) {
+    Path path = getPath(fileName);
+    try {
+      return Files.readString(path);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private static Path getPath(String fileName) {
     return Paths.get("src/main/resources/" + fileName);
   }
