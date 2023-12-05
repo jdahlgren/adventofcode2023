@@ -16,22 +16,56 @@ public class Day5 {
 
   public long getLowestLocationNumber() {
     Almanac almanac = toAlmanac(FileReader.readFileToString(fileName));
+    return getLowestLocationNumber(almanac);
+  }
+
+  public long getLowestLocationNumberRange() {
+    Almanac almanac = toAlmanac(FileReader.readFileToString(fileName));
+    return getLowestLocationNumberRange(almanac);
+  }
+
+  private static long getLowestLocationNumber(Almanac almanac) {
     long lowestLocationNumber = Long.MAX_VALUE;
     for (Long seedNumber : almanac.seedNumbers) {
       long destination = seedNumber;
-      for (AToBMap aToBMap : almanac.map) {
-        for (AToB aToB : aToBMap.aToB()) {
-          if (destination >= aToB.source && destination < aToB.source + aToB.range) {
-            destination = destination + aToB.destination - aToB.source;
-            break;
-          }
-        }
-      }
+      destination = getDestination(almanac, destination);
       if (destination < lowestLocationNumber) {
         lowestLocationNumber = destination;
       }
     }
     return lowestLocationNumber;
+  }
+
+  private static long getLowestLocationNumberRange(Almanac almanac) {
+    long lowestLocationNumber = Long.MAX_VALUE;
+    List<Long> seedNumbers = almanac.seedNumbers;
+    for (int i = 0; i < seedNumbers.size(); i++) {
+      Long seedStart = seedNumbers.get(i);
+      Long range = seedNumbers.get(i + 1);
+      for (long j = seedStart; j < seedStart + range; j++) {
+
+        long destination = j;
+        destination = getDestination(almanac, destination);
+        if (destination < lowestLocationNumber) {
+          lowestLocationNumber = destination;
+        }
+      }
+      i++;
+
+    }
+    return lowestLocationNumber;
+  }
+
+  private static long getDestination(Almanac almanac, long destination) {
+    for (AToBMap aToBMap : almanac.map) {
+      for (AToB aToB : aToBMap.aToB()) {
+        if (destination >= aToB.source && destination < aToB.source + aToB.range) {
+          destination = destination + aToB.destination - aToB.source;
+          break;
+        }
+      }
+    }
+    return destination;
   }
 
   private Almanac toAlmanac(String input) {
