@@ -10,14 +10,14 @@ class Day7Test {
   @Test
   void part1Example() {
     Day7 day7 = new Day7("day7example.txt");
-    int totalWinnings = day7.calcTotalWinnings();
+    int totalWinnings = day7.calcTotalWinnings(false);
     assertThat(totalWinnings, is(6440));
   }
 
   @Test
   void part1() {
     Day7 day7 = new Day7("day7.txt");
-    int totalWinnings = day7.calcTotalWinnings();
+    int totalWinnings = day7.calcTotalWinnings(false);
     assertThat(totalWinnings, is(246424613));
   }
 }

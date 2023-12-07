@@ -5,38 +5,39 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import se.johannesdahlgren.aoc23.util.FileReader;
 
 public class Day7 {
 
   private final String fileName;
-  private static final List<Character> cardValues = List.of('A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2', '1');
+  private static final List<Character> cardValues = List.of('A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2');
+  private static final List<Character> cardValuesJoker = List.of('A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J');
 
   public Day7(String fileName) {
     this.fileName = fileName;
   }
 
-  public int calcTotalWinnings() {
+  public int calcTotalWinnings(boolean useJoker) {
     AtomicInteger index = new AtomicInteger(1);
     return FileReader.readFileAsLines(fileName).stream()
-        .map(this::toHands)
+        .map(line -> toHands(line, useJoker))
         .sorted(Hand::compareTo)
         .map(h -> h.bet * index.getAndIncrement())
         .reduce(0, Integer::sum);
   }
 
-  private Hand toHands(String line) {
+  private Hand toHands(String line, boolean useJoker) {
     String cards = line.substring(0, 5);
     int bet = Integer.parseInt(line.substring(6));
-    return new Hand(cards, bet);
+    return new Hand(cards, bet, useJoker);
   }
 
-  private record Hand(String cards, int bet, HandStrength strength) {
+  private record Hand(String cards, int bet, boolean useJoker, HandStrength strength) {
 
-    Hand(String cards, int bet) {
-      this(cards, bet, HandStrength.from(cards));
+    Hand(String cards, int bet, boolean useJoker) {
+      this(cards, bet, useJoker, HandStrength.from(cards, useJoker));
     }
 
 
@@ -66,60 +67,62 @@ public class Day7 {
     ONE_PAIR,
     HIGH_CARD;
 
-    public static HandStrength from(String cards) {
-      if (isFiveOfAKind(cards)) {
+    public static HandStrength from(String cards, boolean useJoker) {
+      if (isXOfAKind(cards, 5, useJoker)) {
         return FIVE_OF_A_KIND;
-      } else if (isXOfAKind(cards, 4)) {
+      } else if (isXOfAKind(cards, 4, useJoker)) {
         return FOUR_OF_A_KIND;
-      } else if (isFullHouse(cards)) {
+      } else if (isFullHouse(cards, useJoker)) {
         return FULL_HOUSE;
-      } else if (isXOfAKind(cards, 3)) {
+      } else if (isXOfAKind(cards, 3, useJoker)) {
         return THREE_OF_A_KIND;
-      } else if (isTwoPairs(cards)) {
+      } else if (isTwoPairs(cards, useJoker)) {
         return TWO_PAIRS;
-      } else if (isXOfAKind(cards, 2)) {
+      } else if (isXOfAKind(cards, 2, useJoker)) {
         return ONE_PAIR;
       } else {
         return HIGH_CARD;
       }
     }
 
-    private static boolean isFiveOfAKind(String cards) {
-      return Pattern.compile("([A-Z])\\1{4}").matcher(cards).find();
-    }
-
-    private static boolean isXOfAKind(String cards, int numberOfSameCard) {
-      return groupCards(cards)
+    private static boolean isXOfAKind(String cards, int numberOfSameCard, boolean useJoker) {
+      return groupCards(cards, useJoker)
           .values().stream()
           .anyMatch(l -> l == numberOfSameCard);
     }
 
-    private static boolean isFullHouse(String cards) {
-      if (isXOfAKind(cards, 3)) {
-        Character threeOfAKind = getXOfAKind(cards, 3);
+    private static boolean isFullHouse(String cards, boolean useJoker) {
+      if (isXOfAKind(cards, 3, useJoker)) {
+        Character threeOfAKind = getXOfAKind(cards, 3, useJoker);
         String remainingCards = cards.replace(threeOfAKind.toString(), "");
-        return isXOfAKind(remainingCards, 2);
+        return isXOfAKind(remainingCards, 2, useJoker);
       }
       return false;
     }
 
-    private static boolean isTwoPairs(String cards) {
-      if (isXOfAKind(cards, 2)) {
-        Character twoOfAKind = getXOfAKind(cards, 2);
+    private static boolean isTwoPairs(String cards, boolean useJoker) {
+      if (isXOfAKind(cards, 2, useJoker)) {
+        Character twoOfAKind = getXOfAKind(cards, 2, useJoker);
         String remainingCards = cards.replace(twoOfAKind.toString(), "");
-        return isXOfAKind(remainingCards, 2);
+        return isXOfAKind(remainingCards, 2, useJoker);
       }
       return false;
     }
 
-    private static Character getXOfAKind(String cards, int numberOfSameCard) {
-      return groupCards(cards).entrySet().stream().filter(e -> e.getValue() == numberOfSameCard).findFirst().map(Entry::getKey).orElseThrow();
+    private static Character getXOfAKind(String cards, int numberOfSameCard, boolean useJoker) {
+      return groupCards(cards, useJoker).entrySet().stream().filter(e -> e.getValue() == numberOfSameCard).findFirst().map(Entry::getKey)
+          .orElseThrow();
     }
 
-    private static Map<Character, Long> groupCards(String cards) {
-      return cards.chars()
-          .mapToObj(e -> (char) e)
-          .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+    private static Map<Character, Long> groupCards(String cards, boolean useJoker) {
+      Stream<Character> characterStream = cards.chars()
+          .mapToObj(e -> (char) e);
+      if (!useJoker) {
+        return characterStream
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+      } else {
+        return Map.of();
+      }
     }
   }
 }
