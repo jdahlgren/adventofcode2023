@@ -6,14 +6,14 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import se.johannesdahlgren.aoc23.util.FileReader;
 
 public class Day7 {
 
   private final String fileName;
-  private static final List<Character> cardValues = List.of('A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2');
-  private static final List<Character> cardValuesJoker = List.of('A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J');
+  private static final char JOKER = 'J';
+  private static final List<Character> cardValues = List.of('A', 'K', 'Q', JOKER, 'T', '9', '8', '7', '6', '5', '4', '3', '2');
+  private static final List<Character> cardValuesJoker = List.of('A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', JOKER);
 
   public Day7(String fileName) {
     this.fileName = fileName;
@@ -34,7 +34,7 @@ public class Day7 {
     return new Hand(cards, bet, useJoker);
   }
 
-  private record Hand(String cards, int bet, boolean useJoker, HandStrength strength) {
+  public record Hand(String cards, int bet, boolean useJoker, HandStrength strength) {
 
     Hand(String cards, int bet, boolean useJoker) {
       this(cards, bet, useJoker, HandStrength.from(cards, useJoker));
@@ -47,16 +47,16 @@ public class Day7 {
         return strength;
       }
       for (int i = 0; i < cards.length(); i++) {
-        int compareCard = Integer.compare(cardValues.indexOf(h2.cards.charAt(i)), cardValues.indexOf(cards.charAt(i)));
+        int compareCard = useJoker ?
+            Integer.compare(cardValuesJoker.indexOf(h2.cards.charAt(i)), cardValuesJoker.indexOf(cards.charAt(i))) :
+            Integer.compare(cardValues.indexOf(h2.cards.charAt(i)), cardValues.indexOf(cards.charAt(i)));
         if (compareCard != 0) {
           return compareCard;
         }
       }
       return 0;
     }
-
   }
-
 
   private enum HandStrength {
     FIVE_OF_A_KIND,
@@ -95,6 +95,9 @@ public class Day7 {
       if (isXOfAKind(cards, 3, useJoker)) {
         Character threeOfAKind = getXOfAKind(cards, 3, useJoker);
         String remainingCards = cards.replace(threeOfAKind.toString(), "");
+        if (useJoker) {
+          remainingCards = remainingCards.replace(String.valueOf(JOKER), "");
+        }
         return isXOfAKind(remainingCards, 2, useJoker);
       }
       return false;
@@ -104,6 +107,9 @@ public class Day7 {
       if (isXOfAKind(cards, 2, useJoker)) {
         Character twoOfAKind = getXOfAKind(cards, 2, useJoker);
         String remainingCards = cards.replace(twoOfAKind.toString(), "");
+        if (useJoker) {
+          remainingCards = remainingCards.replace(String.valueOf(JOKER), "");
+        }
         return isXOfAKind(remainingCards, 2, useJoker);
       }
       return false;
@@ -115,13 +121,17 @@ public class Day7 {
     }
 
     private static Map<Character, Long> groupCards(String cards, boolean useJoker) {
-      Stream<Character> characterStream = cards.chars()
-          .mapToObj(e -> (char) e);
-      if (!useJoker) {
-        return characterStream
-            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+      Map<Character, Long> cardGroup = cards.chars()
+          .mapToObj(e -> (char) e)
+          .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+      if (!useJoker || !cardGroup.containsKey(JOKER) || cardGroup.get(JOKER) == 5) {
+        return cardGroup;
       } else {
-        return Map.of();
+        Long numberOfJokers = cardGroup.get(JOKER);
+        cardGroup.remove(JOKER);
+        Character bestNonJoker = cardGroup.entrySet().stream().max(Entry.comparingByValue()).map(Entry::getKey).orElseThrow();
+        return cardGroup.entrySet().stream()
+            .collect(Collectors.toMap(Entry::getKey, e -> e.getKey().equals(bestNonJoker) ? e.getValue() + numberOfJokers : e.getValue()));
       }
     }
   }
