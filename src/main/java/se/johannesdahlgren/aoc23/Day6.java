@@ -11,17 +11,17 @@ public class Day6 {
     this.races = races;
   }
 
-  public List<Integer> getWaysToBeatRecord() {
+  public List<Long> getWaysToBeatRecord() {
     return races.stream()
         .map(this::getNumberOfWaysToBeatRecord)
         .toList();
   }
 
-  private int getNumberOfWaysToBeatRecord(Race race) {
-    int speed = 0;
-    int duration = race.length;
-    int numberOfRecords = 0;
-    for (int i = 0; i < race.length; i++) {
+  private long getNumberOfWaysToBeatRecord(Race race) {
+    long speed = 0;
+    long duration = race.length;
+    long numberOfRecords = 0;
+    for (long i = 0; i < race.length; i++) {
       speed++;
       duration--;
       if (speed * duration > race.record) {
@@ -31,7 +31,7 @@ public class Day6 {
     return numberOfRecords;
   }
 
-  public record Race(int length, int record) {
+  public record Race(long length, long record) {
 
   }
 }
