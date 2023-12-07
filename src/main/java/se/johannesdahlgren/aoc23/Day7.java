@@ -76,7 +76,7 @@ public class Day7 {
         return FULL_HOUSE;
       } else if (isXOfAKind(cards, 3, useJoker)) {
         return THREE_OF_A_KIND;
-      } else if (isTwoPairs(cards, useJoker)) {
+      } else if (isTwoPairs(cards, useJoker, 2)) {
         return TWO_PAIRS;
       } else if (isXOfAKind(cards, 2, useJoker)) {
         return ONE_PAIR;
@@ -92,20 +92,12 @@ public class Day7 {
     }
 
     private static boolean isFullHouse(String cards, boolean useJoker) {
-      if (isXOfAKind(cards, 3, useJoker)) {
-        Character threeOfAKind = getXOfAKind(cards, 3, useJoker);
-        String remainingCards = cards.replace(threeOfAKind.toString(), "");
-        if (useJoker) {
-          remainingCards = remainingCards.replace(String.valueOf(JOKER), "");
-        }
-        return isXOfAKind(remainingCards, 2, useJoker);
-      }
-      return false;
+      return isTwoPairs(cards, useJoker, 3);
     }
 
-    private static boolean isTwoPairs(String cards, boolean useJoker) {
-      if (isXOfAKind(cards, 2, useJoker)) {
-        Character twoOfAKind = getXOfAKind(cards, 2, useJoker);
+    private static boolean isTwoPairs(String cards, boolean useJoker, int numberOfSameCard) {
+      if (isXOfAKind(cards, numberOfSameCard, useJoker)) {
+        Character twoOfAKind = getXOfAKind(cards, numberOfSameCard, useJoker);
         String remainingCards = cards.replace(twoOfAKind.toString(), "");
         if (useJoker) {
           remainingCards = remainingCards.replace(String.valueOf(JOKER), "");
